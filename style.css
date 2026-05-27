@@ -4,9 +4,41 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg: #ffffff;
+  --text: #0b0b0f;
+  --card-bg: #f3f4f6;
+  --border: #e5e7eb;
+
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+
+  --btn-secondary-bg: #e5e7eb;
+  --btn-secondary-text: #0b0b0f;
+
+  --btn-success-bg: #16a34a;
+  --btn-success-text: #ffffff;
+
+  --btn-danger-bg: #dc2626;
+  --btn-danger-text: #ffffff;
+}
+
+html.theme-dark {
+  --bg: #09090b;
+  --text: #ffffff;
+  --card-bg: #18181b;
+  --border: #27272a;
+
+  --input-bg: #09090b;
+  --input-border: #3f3f46;
+
+  --btn-secondary-bg: #27272a;
+  --btn-secondary-text: #ffffff;
+}
+
 body {
-  background: #09090b;
-  color: white;
+  background: var(--bg);
+  color: var(--text);
   font-family: Inter, sans-serif;
 }
 
@@ -15,6 +47,7 @@ body {
   margin: auto;
   padding: 30px;
 }
+
 
 header {
   display: flex;
@@ -27,18 +60,27 @@ header h1 {
   font-size: 40px;
 }
 
+.top-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+
 header p {
-  color: #a1a1aa;
+  color: rgba(161, 161, 170, 0.95);
   margin-top: 5px;
 }
 
+
 .card {
-  background: #18181b;
-  border: 1px solid #27272a;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 25px;
   margin-bottom: 25px;
 }
+
 
 .card h2 {
   margin-bottom: 20px;
@@ -51,12 +93,13 @@ header p {
 }
 
 .shop-card {
-  background: #09090b;
-  border: 1px solid #27272a;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 20px;
 }
+
 
 .shop-card h3 {
   margin-bottom: 15px;
@@ -70,21 +113,22 @@ header p {
 
 input {
   width: 100%;
-  background: #09090b;
-  border: 1px solid #3f3f46;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 14px;
   padding: 14px;
-  color: white;
+  color: var(--text);
 }
 
 input:focus {
   outline: none;
-  border-color: white;
+  border-color: var(--text);
 }
 
+
 .btn {
-  background: white;
-  color: black;
+  background: var(--card-bg);
+  color: var(--text);
   border: none;
   padding: 14px 22px;
   border-radius: 14px;
@@ -93,19 +137,20 @@ input:focus {
 }
 
 .secondary {
-  background: #27272a;
-  color: white;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .success {
-  background: #16a34a;
-  color: white;
+  background: var(--btn-success-bg);
+  color: var(--btn-success-text);
 }
 
 .danger {
-  background: #dc2626;
-  color: white;
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
 }
+
 
 .actions {
   display: flex;
@@ -128,41 +173,57 @@ input:focus {
 }
 
 .summary-box {
-  background: #09090b;
-  border: 1px solid #27272a;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
 }
 
+
 .summary-box p {
-  color: #a1a1aa;
+  color: rgba(161, 161, 170, 0.95);
   margin-bottom: 10px;
 }
+
+html.theme-dark .summary-box p,
+html.theme-dark .result-card p {
+  color: rgba(161, 161, 170, 0.95);
+}
+
+
 
 .summary-box h3 {
   font-size: 32px;
 }
 
 .result-card {
-  background: #09090b;
-  border: 1px solid #27272a;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 15px;
 }
 
+
 .result-card p {
-  color: #a1a1aa;
+  color: rgba(161, 161, 170, 0.95);
   margin-top: 6px;
 }
 
+html.theme-dark .result-card {
+  background: var(--bg);
+}
+
+
+
 .history-card {
-  background: #09090b;
-  border: 1px solid #27272a;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 20px;
 }
+
 
 .history-top {
   display: flex;
@@ -179,11 +240,12 @@ input:focus {
 
 
 .shop-history {
-  background: #18181b;
+  background: var(--card-bg);
   border-radius: 14px;
   padding: 12px;
   margin-top: 10px;
 }
+
 
 @media(max-width: 768px) {
   header {
