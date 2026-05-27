@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#09090b" />
+  <meta name="theme-color" content="#ffffff" />
+  
+  <title data-i18n="appName">Electricity Bill Calculator</title>
 
-  <title>Electricity Bill Calculator</title>
 
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
@@ -19,53 +20,60 @@
 
   <header>
     <div>
-      <h1>Electricity Bill Calculator</h1><br/>
-      <h3>Bhuiyan Manjil</h3><hr>
-      <p>Modern Cloud-Based Billing System</p>
+      <h1 data-i18n="appName">Electricity Bill Calculator</h1>
+      <p data-i18n="modernBilling">Modern Cloud-Based Billing System</p>
     </div>
 
     <div class="header-actions">
-      <a href="history.html" class="btn secondary">History</a>
+      <div class="top-controls">
+        <button class="btn secondary" id="langToggle" type="button">English</button>
+        <button class="btn secondary" id="themeToggle" type="button">Light</button>
+      </div>
+      <a href="history.html" class="btn secondary" data-i18n="history">History</a>
     </div>
+
   </header>
 
   <section class="card">
-    <h2>Billing Information</h2>
+    <h2 data-i18n="billingInformation">Billing Information</h2>
 
     <div class="grid-3">
-      <input type="text" id="invoiceNumber" readonly>
-      <input type="date" id="billingDate">
-      <input type="number" id="totalBill" placeholder="Total Bill">
+      <input type="text" id="invoiceNumber" readonly data-i18n="invoiceNumber">
+      <input type="date" id="billingDate" data-i18n="billingDate">
+      <input type="number" id="totalBill" placeholder="Total Bill" data-i18n-placeholder="totalBill">
+
     </div>
   </section>
 
   <section class="card">
     <div class="between">
-      <h2>Shop Readings</h2>
-      <button class="btn secondary" id="addShopBtn">+ Add Shop</button>
+      <h2 data-i18n="shopReadings">Shop Readings</h2>
+      <button class="btn secondary" id="addShopBtn" data-i18n="addShop">+ Add Shop</button>
     </div>
 
     <div id="shopsContainer"></div>
 
     <div class="actions">
-      <button class="btn" id="calculateBtn">Calculate Bills</button>
-      <button class="btn success" id="saveBtn">Save to Cloud</button>
+      <button class="btn" id="calculateBtn" data-i18n="calculateBills">Calculate Bills</button>
+      <button class="btn success" id="saveBtn" data-i18n="saveToCloud">Save to Cloud</button>
     </div>
   </section>
 
   <section class="card" id="resultsSection">
-    <h2>Summary</h2>
+    <h2 data-i18n="summary">Summary</h2>
+
 
     <div class="summary-grid">
       <div class="summary-box">
-        <p>Total Consumption</p>
+        <p data-i18n="totalConsumption">Total Consumption</p>
         <h3 id="totalConsumption">0</h3>
       </div>
 
       <div class="summary-box">
-        <p>Rate Per Unit</p>
+        <p data-i18n="ratePerUnit">Rate Per Unit</p>
         <h3 id="ratePerUnit">0</h3>
       </div>
+
     </div>
 
     <div id="resultCards"></div>
@@ -73,8 +81,10 @@
 
 </div>
 
-<script src="supabase.js"></script>
-<script src="app.js"></script>
+  <script src="i18n.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
 
 </body>
 </html>
+
