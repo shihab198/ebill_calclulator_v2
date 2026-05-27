@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check last ping time (DB logic)
-        id: check
+      - name: Check last ping (DB logic)
         run: |
           set -e
 
@@ -25,7 +24,6 @@ jobs:
           LAST=$(echo $DATA | jq -r '.[0].last_ping_at')
 
           if [ "$LAST" = "null" ] || [ -z "$LAST" ]; then
-            echo "First run - forcing ping"
             echo "RUN_PING=1" >> $GITHUB_ENV
             exit 0
           fi
@@ -33,11 +31,11 @@ jobs:
           LAST_TS=$(date -d "$LAST" +%s)
           NOW_TS=$(date +%s)
 
-          DIFF_DAYS=$(( (NOW_TS - LAST_TS) / 86400 ))
+          DIFF=$(( (NOW_TS - LAST_TS) / 86400 ))
 
-          echo "Days since last ping: $DIFF_DAYS"
+          echo "Days since last ping: $DIFF"
 
-          if [ "$DIFF_DAYS" -ge 5 ]; then
+          if [ "$DIFF" -ge 5 ]; then
             echo "RUN_PING=1" >> $GITHUB_ENV
           else
             echo "RUN_PING=0" >> $GITHUB_ENV
@@ -45,30 +43,28 @@ jobs:
 
       - name: Call Edge Function
         if: env.RUN_PING == '1'
-        id: call
         run: |
           set -e
 
           URL="${{ secrets.SUPABASE_FUNCTION_URL }}"
           KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
 
-          RES=$(curl -s -w "%{http_code}" \
+          HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" \
             -H "Authorization: Bearer $KEY" \
             "$URL")
 
-          CODE="${RES: -3}"
-          BODY="${RES%???}"
+          BODY=$(cat response.txt)
 
-          echo "HTTP: $CODE"
+          echo "HTTP: $HTTP_CODE"
+          echo "BODY: $BODY"
 
-          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "FAIL=1" >> $GITHUB_ENV
+          if [ "$HTTP_CODE" -ne 200 ] || [ "$BODY" != "alive" ]; then
             echo "ERROR=$BODY" >> $GITHUB_ENV
             exit 1
           fi
 
       - name: Update last ping time
-        if: env.RUN_PING == '1' && success()
+        if: success() && env.RUN_PING == '1'
         run: |
           curl -s -X PATCH \
             "${{ secrets.SUPABASE_URL }}/rest/v1/system_health?id=eq.1" \
@@ -77,7 +73,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"last_ping_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}'
 
-      - name: Telegram Alert (always on failure)
+      - name: Telegram Alert
         if: failure()
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
@@ -86,4 +82,4 @@ jobs:
 
       - name: Success log
         if: success()
-        run: echo "✅ Keep-alive check completed"
+        run: echo "✅ Keep alive OK"
