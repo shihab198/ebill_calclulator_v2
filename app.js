@@ -148,6 +148,12 @@ function renderResults(data) {
   });
 }
 
+window.addEventListener("ebill:languageChanged", () => {
+  if (!latestCalculation) return;
+  // Re-render result cards so they reflect the new language immediately.
+  renderResults(latestCalculation);
+});
+
 saveBtn.addEventListener("click", async () => {
   if (!latestCalculation) {
     alert(t ? t("calculateFirst") : "Calculate first");
