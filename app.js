@@ -3,9 +3,11 @@ const calculateBtn = document.getElementById("calculateBtn");
 const saveBtn = document.getElementById("saveBtn");
 const resultCards = document.getElementById("resultCards");
 
+const { t, getLang } = window.EbillI18n || {};
 
 let shopCount = 0;
 let latestCalculation = null;
+
 
 function generateInvoiceNumber() {
   const date = new Date();
@@ -31,17 +33,18 @@ function addShop() {
 
   div.innerHTML = `
     <div class="between">
-      <h3>Shop ${shopCount}</h3>
-      <button class="btn danger remove-btn">Remove</button>
+      <h3>${t("shopPrefix") ?? "Shop"} ${shopCount}</h3>
+      <button class="btn danger remove-btn">${t("remove")}</button>
     </div>
 
     <div class="shop-grid">
-      <input type="text" class="shop-name" value="Shop ${shopCount}">
-      <input type="number" class="previous" placeholder="Previous Reading">
-      <input type="number" class="current" placeholder="Current Reading">
-      <input type="text" class="consumption" placeholder="Consumption" readonly>
+      <input type="text" class="shop-name" value="${t("shopPrefix") ?? "Shop"} ${shopCount}">
+      <input type="number" class="previous" placeholder="${t ? t("previousReading") : "Previous Reading"}">
+      <input type="number" class="current" placeholder="${t ? t("currentReading") : "Current Reading"}">
+      <input type="text" class="consumption" placeholder="${t ? t("consumption") : "Consumption"}" readonly>
     </div>
   `;
+
 
   shopsContainer.appendChild(div);
 
@@ -75,6 +78,7 @@ document.getElementById("addShopBtn").addEventListener("click", addShop);
 calculateBtn.addEventListener("click", () => {
   const totalBill = Number(document.getElementById("totalBill").value);
 
+
   const shopCards = document.querySelectorAll(".shop-card");
 
   let shops = [];
@@ -98,9 +102,10 @@ calculateBtn.addEventListener("click", () => {
   });
 
   if (totalConsumption <= 0) {
-    alert("Invalid consumption values");
+    alert(t ? t("invalidConsumptionValues") : "Invalid consumption values");
     return;
   }
+
 
   const rate = totalBill / totalConsumption;
 
@@ -125,6 +130,7 @@ function renderResults(data) {
   document.getElementById("totalConsumption").innerText = data.total_consumption;
   document.getElementById("ratePerUnit").innerText = `৳ ${data.rate_per_unit}`;
 
+
   resultCards.innerHTML = "";
 
   data.shops.forEach(shop => {
@@ -133,9 +139,10 @@ function renderResults(data) {
 
     div.innerHTML = `
       <h3>${shop.shop_name}</h3>
-      <p>Consumption: ${shop.consumption} Units</p>
-      <p>Bill: ৳ ${shop.bill}</p>
+      <p>${t ? t("consumption") : "Consumption"}: ${shop.consumption} ${t ? t("consumptionUnits") : "Units"}</p>
+      <p>${t ? t("billLabel") : "Bill"}: ৳ ${shop.bill}</p>
     `;
+
 
     resultCards.appendChild(div);
   });
@@ -143,22 +150,24 @@ function renderResults(data) {
 
 saveBtn.addEventListener("click", async () => {
   if (!latestCalculation) {
-    alert("Calculate first");
+    alert(t ? t("calculateFirst") : "Calculate first");
     return;
   }
+
 
   const { error } = await supabaseClient
     .from("bill_history")
     .insert([latestCalculation]);
 
   if (error) {
-    alert("Failed to save");
+    alert(t ? t("failedToSave") : "Failed to save");
     console.log(error);
   } else {
-    alert("Saved Successfully");
+    alert(t ? t("savedSuccessfully") : "Saved Successfully");
     generateInvoiceNumber();
   }
 });
+
 
 
 
