@@ -2,7 +2,7 @@ name: Supabase Daily Keep Alive
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # daily run
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -10,20 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check last ping (DB logic)
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq curl
+
+      - name: Check last ping
+        id: check
         run: |
           set -e
 
           URL="${{ secrets.SUPABASE_URL }}"
           KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
 
-          DATA=$(curl -s "$URL/rest/v1/system_health?id=eq.1&select=last_ping_at" \
+          DATA=$(curl -s \
+            "$URL/rest/v1/system_health?id=eq.1&select=last_ping_at" \
             -H "apikey: $KEY" \
             -H "Authorization: Bearer $KEY")
 
-          LAST=$(echo $DATA | jq -r '.[0].last_ping_at')
+          LAST=$(echo "$DATA" | jq -r '.[0].last_ping_at // empty')
 
-          if [ "$LAST" = "null" ] || [ -z "$LAST" ]; then
+          if [ -z "$LAST" ]; then
             echo "RUN_PING=1" >> $GITHUB_ENV
             exit 0
           fi
@@ -46,12 +51,12 @@ jobs:
         run: |
           set -e
 
-          URL="${{ secrets.SUPABASE_FUNCTION_URL }}"
-          KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+          FUNCTION_URL="${{ secrets.SUPABASE_FUNCTION_URL }}"
+          SECRET="${{ secrets.KEEPALIVE_SECRET }}"
 
           HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" \
-            -H "Authorization: Bearer $KEY" \
-            "$URL")
+            -H "x-keepalive-secret: $SECRET" \
+            "$FUNCTION_URL")
 
           BODY=$(cat response.txt)
 
@@ -66,12 +71,14 @@ jobs:
       - name: Update last ping time
         if: success() && env.RUN_PING == '1'
         run: |
-          curl -s -X PATCH \
+          set -e
+
+          curl -s -f -X PATCH \
             "${{ secrets.SUPABASE_URL }}/rest/v1/system_health?id=eq.1" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
-            -d '{"last_ping_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}'
+            -d "{\"last_ping_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
 
       - name: Telegram Alert
         if: failure()
