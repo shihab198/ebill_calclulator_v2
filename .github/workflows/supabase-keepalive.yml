@@ -1,0 +1,70 @@
+name: Supabase Keep Alive + Telegram Alert
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # ✅ daily (better than every 5 days)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase Edge Function (with retry)
+        id: ping
+        run: |
+          set -e
+
+          URL="${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive"
+          KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+
+          MAX_RETRIES=5
+          COUNT=0
+          SUCCESS=0
+          RESPONSE_BODY=""
+
+          echo "Starting Supabase health check..."
+
+          while [ $COUNT -lt $MAX_RETRIES ]; do
+            COUNT=$((COUNT+1))
+            echo "Attempt $COUNT of $MAX_RETRIES"
+
+            RESPONSE=$(curl -s -w "%{http_code}" \
+              -H "Authorization: Bearer $KEY" \
+              "$URL")
+
+            HTTP_CODE="${RESPONSE: -3}"
+            BODY="${RESPONSE%???}"
+
+            echo "HTTP: $HTTP_CODE"
+            echo "Body: $BODY"
+
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              echo "SUCCESS=1" >> $GITHUB_ENV
+              SUCCESS=1
+              break
+            fi
+
+            WAIT=$((COUNT * 5))
+            echo "Failed. Retrying in $WAIT seconds..."
+            sleep $WAIT
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "FAILED=1" >> $GITHUB_ENV
+            echo "RESPONSE_BODY=$BODY" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Send Telegram alert on failure
+        if: failure()
+        run: |
+          MESSAGE="🚨 Supabase Keep-Alive FAILED%0A%0AProject: ${{ secrets.SUPABASE_URL }}%0ATime: $(date -u)%0AError: $RESPONSE_BODY"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="$MESSAGE"
+
+      - name: Success log
+        if: success()
+        run: echo "✅ Supabase is alive"
