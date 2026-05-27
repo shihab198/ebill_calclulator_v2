@@ -15,7 +15,7 @@ jobs:
         run: |
           set -e
 
-          URL="${{ secrets.SUPABASE_URL }}/functions/v1/keep-alive"
+          URL="${{ secrets.SUPABASE_FUNCTION_URL }}"
           KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
 
           MAX_RETRIES=5
