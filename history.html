@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Billing History</title>
+  <title data-i18n="historyPageTitle">Billing History</title>
+
 
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,15 +17,20 @@
 
   <header>
     <div>
-      <h1>Billing History</h1>
-      <p>Cloud Synced Records</p>
+      <h1 data-i18n="historyPageTitle">Billing History</h1>
+      <p data-i18n="cloudSyncedRecords">Cloud Synced Records</p>
     </div>
 
     <div class="header-actions">
-      <button class="btn secondary" id="csvExportBtn">Export CSV</button>
-      <a href="index.html" class="btn secondary">Calculator</a>
+      <div class="top-controls">
+        <button class="btn secondary" id="langToggle" type="button">English</button>
+        <button class="btn secondary" id="themeToggle" type="button">Light</button>
+      </div>
+      <button class="btn secondary" id="csvExportBtn" data-i18n="exportCSV">Export CSV</button>
+      <a href="index.html" class="btn secondary" data-i18n="calculator">Calculator</a>
     </div>
   </header>
+
 
   <section class="card">
     <div id="historyContainer"></div>
@@ -32,8 +38,11 @@
 
 </div>
 
+
+<script src="i18n.js"></script>
 <script src="supabase.js"></script>
 <script src="history.js"></script>
 
 </body>
 </html>
+
