@@ -149,10 +149,39 @@ function renderResults(data) {
 }
 
 window.addEventListener("ebill:languageChanged", () => {
-  if (!latestCalculation) return;
-  // Re-render result cards so they reflect the new language immediately.
-  renderResults(latestCalculation);
+  // Update result cards so they reflect the new language immediately.
+  if (latestCalculation) {
+    renderResults(latestCalculation);
+  }
+
+  // Update dynamically generated shop-card UI (placeholders + labels).
+  // These are created once in addShop(); without this hook they won't change until refresh.
+  const lang = window.EbillI18n?.getLang?.() ?? "bn";
+  const prefix = t?.("shopPrefix", lang) ?? "Shop";
+  document.querySelectorAll(".shop-card").forEach((card, idx) => {
+    const shopNumber = idx + 1;
+
+    const h3 = card.querySelector("h3");
+    if (h3) h3.textContent = `${prefix} ${shopNumber}`;
+
+    const previousInput = card.querySelector(".previous");
+    if (previousInput) previousInput.setAttribute("placeholder", t?.("previousReading", lang) ?? "Previous Reading");
+
+    const currentInput = card.querySelector(".current");
+    if (currentInput) currentInput.setAttribute("placeholder", t?.("currentReading", lang) ?? "Current Reading");
+
+    const consumptionInput = card.querySelector(".consumption");
+    if (consumptionInput) consumptionInput.setAttribute("placeholder", t?.("consumption", lang) ?? "Consumption");
+
+    const removeBtn = card.querySelector(".remove-btn");
+    if (removeBtn) removeBtn.textContent = t?.("remove", lang) ?? "Remove";
+
+    // Keep shop name value consistent with the current language.
+    const shopNameInput = card.querySelector(".shop-name");
+    if (shopNameInput) shopNameInput.value = `${prefix} ${shopNumber}`;
+  });
 });
+
 
 saveBtn.addEventListener("click", async () => {
   if (!latestCalculation) {
