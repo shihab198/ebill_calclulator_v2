@@ -195,6 +195,10 @@
         setLang(next);
         applyLanguage(next);
         updateLangBtn();
+
+        window.dispatchEvent(
+          new CustomEvent("ebill:languageChanged", { detail: { lang: next } })
+        );
       });
 
       updateLangBtn();
@@ -235,6 +239,10 @@
     applyLanguage(lang);
     applyTheme(theme);
     initToggles();
+
+    window.dispatchEvent(
+      new CustomEvent("ebill:languageChanged", { detail: { lang } })
+    );
   });
 })();
 
