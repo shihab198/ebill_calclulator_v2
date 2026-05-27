@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#09090b" />
+
+  <title>Electricity Bill Calculator</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div>
+      <h1>Electricity Bill Calculator</h1>
+      <p>Modern Cloud-Based Billing System</p>
+    </div>
+
+    <div class="header-actions">
+      <a href="history.html" class="btn secondary">History</a>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Billing Information</h2>
+
+    <div class="grid-3">
+      <input type="text" id="invoiceNumber" readonly>
+      <input type="date" id="billingDate">
+      <input type="number" id="totalBill" placeholder="Total Bill">
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="between">
+      <h2>Shop Readings</h2>
+      <button class="btn secondary" id="addShopBtn">+ Add Shop</button>
+    </div>
+
+    <div id="shopsContainer"></div>
+
+    <div class="actions">
+      <button class="btn" id="calculateBtn">Calculate Bills</button>
+      <button class="btn success" id="saveBtn">Save to Cloud</button>
+    </div>
+  </section>
+
+  <section class="card" id="resultsSection">
+    <h2>Summary</h2>
+
+    <div class="summary-grid">
+      <div class="summary-box">
+        <p>Total Consumption</p>
+        <h3 id="totalConsumption">0</h3>
+      </div>
+
+      <div class="summary-box">
+        <p>Rate Per Unit</p>
+        <h3 id="ratePerUnit">0</h3>
+      </div>
+    </div>
+
+    <div id="resultCards"></div>
+  </section>
+
+</div>
+
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

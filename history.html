@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing History</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div>
+      <h1>Billing History</h1>
+      <p>Cloud Synced Records</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn secondary" id="csvExportBtn">Export CSV</button>
+      <a href="index.html" class="btn secondary">Calculator</a>
+    </div>
+  </header>
+
+  <section class="card">
+    <div id="historyContainer"></div>
+  </section>
+
+</div>
+
+<script src="supabase.js"></script>
+<script src="history.js"></script>
+
+</body>
+</html>
