@@ -2,7 +2,7 @@ name: Supabase Daily Keep Alive
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # runs every day
+    - cron: "0 0 * * *"   # daily run
   workflow_dispatch:
 
 jobs:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check last ping time
+      - name: Check last ping time (DB logic)
+        id: check
         run: |
           set -e
 
@@ -23,6 +24,12 @@ jobs:
 
           LAST=$(echo $DATA | jq -r '.[0].last_ping_at')
 
+          if [ "$LAST" = "null" ] || [ -z "$LAST" ]; then
+            echo "First run - forcing ping"
+            echo "RUN_PING=1" >> $GITHUB_ENV
+            exit 0
+          fi
+
           LAST_TS=$(date -d "$LAST" +%s)
           NOW_TS=$(date +%s)
 
@@ -30,13 +37,18 @@ jobs:
 
           echo "Days since last ping: $DIFF_DAYS"
 
-          if [ "$DIFF_DAYS" -lt 5 ]; then
-            echo "No need to ping yet"
-            exit 0
+          if [ "$DIFF_DAYS" -ge 5 ]; then
+            echo "RUN_PING=1" >> $GITHUB_ENV
+          else
+            echo "RUN_PING=0" >> $GITHUB_ENV
           fi
 
       - name: Call Edge Function
+        if: env.RUN_PING == '1'
+        id: call
         run: |
+          set -e
+
           URL="${{ secrets.SUPABASE_FUNCTION_URL }}"
           KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
 
@@ -45,15 +57,18 @@ jobs:
             "$URL")
 
           CODE="${RES: -3}"
+          BODY="${RES%???}"
+
+          echo "HTTP: $CODE"
 
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-              -d text="🚨 Supabase FAILED: Keep Alive Error"
+            echo "FAIL=1" >> $GITHUB_ENV
+            echo "ERROR=$BODY" >> $GITHUB_ENV
             exit 1
           fi
 
       - name: Update last ping time
+        if: env.RUN_PING == '1' && success()
         run: |
           curl -s -X PATCH \
             "${{ secrets.SUPABASE_URL }}/rest/v1/system_health?id=eq.1" \
@@ -61,3 +76,14 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{"last_ping_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}'
+
+      - name: Telegram Alert (always on failure)
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="🚨 Supabase Keep Alive FAILED%0A%0AURL: ${{ secrets.SUPABASE_FUNCTION_URL }}%0AError: $ERROR"
+
+      - name: Success log
+        if: success()
+        run: echo "✅ Keep-alive check completed"
