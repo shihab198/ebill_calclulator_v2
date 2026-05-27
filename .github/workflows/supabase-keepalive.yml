@@ -1,0 +1,49 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    - cron: '0 0 */5 * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase with retries
+        env:
+          KEEPALIVE_URL: ${{ secrets.KEEPALIVE_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+        run: |
+          success=false
+
+          for i in 1 2 3 4 5
+          do
+            echo "Attempt $i"
+
+            response=$(curl -s -o response.txt -w "%{http_code}" $KEEPALIVE_URL)
+
+            if [ "$response" = "200" ]; then
+              echo "Supabase alive"
+              success=true
+              break
+            fi
+
+            echo "Failed attempt $i"
+            sleep 60
+          done
+
+          if [ "$success" = false ]; then
+            echo "Sending Telegram alert"
+
+            MESSAGE="🚨 Supabase keepalive failed after 5 retries."
+
+            curl -s -X POST \
+              https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage \
+              -d chat_id=$TELEGRAM_CHAT_ID \
+              -d text="$MESSAGE"
+              
+            exit 1
+          fi
