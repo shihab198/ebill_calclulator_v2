@@ -1,6 +1,8 @@
 const historyContainer = document.getElementById("historyContainer");
 const csvExportBtn = document.getElementById("csvExportBtn");
 
+const { t } = window.EbillI18n || {};
+
 async function loadHistory() {
   const { data, error } = await supabaseClient
     .from("bill_history")
@@ -8,7 +10,7 @@ async function loadHistory() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    historyContainer.innerHTML = "Failed to load history";
+    historyContainer.innerHTML = t ? t("historyLoadFailed") : "Failed to load history";
     return;
   }
 
@@ -19,21 +21,21 @@ async function loadHistory() {
     div.className = "history-card";
 
     div.innerHTML = `
-      <div class="history-top">
+    <div class="history-top">
         <div>
           <h2>${item.invoice_number}</h2>
           <p>${item.billing_date}</p>
         </div>
 
         <div class="history-actions">
-          <button class="btn secondary export-pdf-btn">Export PDF</button>
-          <button class="btn danger delete-btn">Delete</button>
+          <button class="btn secondary export-pdf-btn">${t ? t("exportPDF") : "Export PDF"}</button>
+          <button class="btn danger delete-btn">${t ? t("delete") : "Delete"}</button>
         </div>
       </div>
 
-      <p>Total Bill: ৳ ${item.total_bill}</p>
-      <p>Total Consumption: ${item.total_consumption}</p>
-      <p>Rate Per Unit: ৳ ${item.rate_per_unit}</p>
+      <p>${t ? t("totalBillLabel") : "Total Bill"}: ৳ ${item.total_bill}</p>
+      <p>${t ? t("totalConsumptionLabel") : "Total Consumption"}: ${item.total_consumption}</p>
+      <p>${t ? t("ratePerUnitLabel") : "Rate Per Unit"}: ৳ ${item.rate_per_unit}</p>
 
       <div class="shops-list"></div>
     `;
@@ -46,17 +48,17 @@ async function loadHistory() {
 
       shopDiv.innerHTML = `
         <h4>${shop.shop_name}</h4>
-        <p>Previous: ${shop.previous}</p>
-        <p>Current: ${shop.current}</p>
-        <p>Consumption: ${shop.consumption}</p>
-        <p>Bill: ৳ ${shop.bill}</p>
+        <p>${t ? t("previousLabel") : "Previous"}: ${shop.previous}</p>
+        <p>${t ? t("currentLabel") : "Current"}: ${shop.current}</p>
+        <p>${t ? t("consumption") : "Consumption"}: ${shop.consumption} ${t ? t("consumptionUnits") : "Units"}</p>
+        <p>${t ? t("billLabel") : "Bill"}: ৳ ${shop.bill}</p>
       `;
 
       shopsList.appendChild(shopDiv);
     });
 
     div.querySelector(".delete-btn").addEventListener("click", async () => {
-      const confirmed = confirm("Delete this record?");
+      const confirmed = confirm(t ? t("deleteThisRecord") : "Delete this record?");
       if (!confirmed) return;
 
       await supabaseClient.from("bill_history").delete().eq("id", item.id);
@@ -68,20 +70,21 @@ async function loadHistory() {
       const doc = new jsPDF();
 
       doc.setFontSize(20);
-      doc.text("Electricity Bill Report", 20, 20);
+      doc.text(t ? t("electricityBillReport") : "Electricity Bill Report", 20, 20);
 
       doc.setFontSize(12);
-      doc.text(`Invoice: ${item.invoice_number}`, 20, 35);
-      doc.text(`Date: ${item.billing_date}`, 20, 45);
-      doc.text(`Total Bill: ৳ ${item.total_bill}`, 20, 55);
+      doc.text(`${t ? t("invoice") : "Invoice"}: ${item.invoice_number}`, 20, 35);
+      doc.text(`${t ? t("date") : "Date"}: ${item.billing_date}`, 20, 45);
+      doc.text(`${t ? t("totalBillLabel") : "Total Bill"}: ৳ ${item.total_bill}`, 20, 55);
 
       let y = 70;
       doc.setFontSize(12);
 
-      doc.text(`Total Consumption: ${item.total_consumption}`, 20, y);
+      doc.text(`${t ? t("totalConsumptionPDF") : "Total Consumption"}: ${item.total_consumption}`, 20, y);
       y += 10;
-      doc.text(`Rate Per Unit: ৳ ${item.rate_per_unit}`, 20, y);
+      doc.text(`${t ? t("ratePerUnitPDF") : "Rate Per Unit"}: ৳ ${item.rate_per_unit}`, 20, y);
       y += 15;
+
       y += 5;
 
       (item.shops || []).forEach(shop => {
@@ -92,10 +95,14 @@ async function loadHistory() {
 
         doc.setFontSize(12);
         doc.text(`${shop.shop_name}`, 20, y);
-        doc.text(`Previous: ${shop.previous}`, 30, y + 8);
-        doc.text(`Current: ${shop.current}`, 30, y + 16);
-        doc.text(`Consumption: ${shop.consumption} Units`, 30, y + 24);
-        doc.text(`Bill: ৳ ${shop.bill}`, 30, y + 32);
+        doc.text(`${t ? t("previousLabel") : "Previous"}: ${shop.previous}`, 30, y + 8);
+        doc.text(`${t ? t("currentLabel") : "Current"}: ${shop.current}`, 30, y + 16);
+        doc.text(
+          `${t ? t("consumption") : "Consumption"}: ${shop.consumption} ${t ? t("consumptionUnits") : "Units"}`,
+          30,
+          y + 24
+        );
+        doc.text(`${t ? t("billLabel") : "Bill"}: ৳ ${shop.bill}`, 30, y + 32);
         y += 42;
       });
 
@@ -113,17 +120,17 @@ csvExportBtn?.addEventListener("click", async () => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    alert("Failed to load history for CSV export");
+    alert(t ? t("exportCSVFailed") : "Failed to load history for CSV export");
     return;
   }
 
   if (!data || data.length === 0) {
-    alert("No history records");
+    alert(t ? t("noHistoryRecords") : "No history records");
     return;
   }
 
   let csv =
-    "Invoice Number,Billing Date,Total Bill,Total Consumption,Rate Per Unit,Shop,Previous,Current,Consumption,Bill\n";
+    `${t ? t("csvInvoiceNumber") : "Invoice Number"},${t ? t("csvBillingDate") : "Billing Date"},${t ? t("csvTotalBill") : "Total Bill"},${t ? t("csvTotalConsumption") : "Total Consumption"},${t ? t("csvRatePerUnit") : "Rate Per Unit"},${t ? t("csvShop") : "Shop"},${t ? t("csvPrevious") : "Previous"},${t ? t("csvCurrent") : "Current"},${t ? t("csvConsumption") : "Consumption"},${t ? t("csvBill") : "Bill"}\n`;
 
   data.forEach(item => {
     (item.shops || []).forEach(shop => {
